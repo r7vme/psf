@@ -1,0 +1,15 @@
+---
+Checks:'
+modernize-*,
+bugprone-*,
+readability-*,
+performance-*,
+misc-*,
+concurrency-*,
+clang-analyzer-*,
+cppcoreguidelines-*,
+hicpp-*,
+cert-*,
+--modernize-use-trailing-return-type'
+WarningsAsErrors: ''
+FormatStyle:     file
