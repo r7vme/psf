@@ -1,11 +1,13 @@
 #include "psf/Node.h"
 #include "psf/common.h"
 #include <atomic>
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
 
 using namespace std::chrono_literals;
+using RegistryClient = psf::registry::RegistryClient;
 
 namespace psf
 {
@@ -22,7 +24,7 @@ Node::Node(std::string name)
 
 	registryThread = std::thread([&isStopped = isStopped, &registrySocket = registrySocket,
 								  &endpointContainersForPublishers = endpointContainersForPublishers]() {
-		registry::RegistryClient registryClient(registrySocket);
+		RegistryClient registryClient(registrySocket);
 		std::vector<Endpoint> newEndpoints;
 
 		while (!isStopped.load(std::memory_order_relaxed))
@@ -31,8 +33,18 @@ Node::Node(std::string name)
 			{
 				newEndpoints.clear();
 
-				// read endpoints from registry
-				auto endpointsFromRegistry = registryClient.getSubscriberEndpointsForTopic(c->topicName);
+				// try read endpoints from registry
+				// TODO: ezRpc client does not support reconnects, so we should keep retrying on our own.
+				RegistryClient::EndpointsReader endpointsFromRegistry;
+				try {
+					endpointsFromRegistry = registryClient.getSubscriberEndpointsForTopic(c->topicName);
+				}
+				catch (kj::Exception &e)
+				{
+					std::cerr << "FATAL: Unable to get endpoints from registry. " << e.getDescription().cStr() << std::endl;
+					return;
+				}
+
 				for (auto const ep : endpointsFromRegistry)
 				{
 					newEndpoints.emplace_back(Endpoint(asio::ip::make_address_v4(ep.getAddress()), ep.getPort()));

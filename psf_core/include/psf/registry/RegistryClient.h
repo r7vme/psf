@@ -18,8 +18,8 @@ class RegistryClient
 	RegistryClient(std::string const &socket) : rpcClient(socket)
 	{
 	}
-	void registerSubscriber(std::string const &nodeName, std::string const &topicName, uint32 address, uint16 port);
-	EndpointsReader getSubscriberEndpointsForTopic(std::string const &topicName);
+	void registerSubscriber(std::string const &nodeName, std::string const &topicName, uint32 address, uint16 port) noexcept(false);
+	EndpointsReader getSubscriberEndpointsForTopic(std::string const &topicName) noexcept(false);
 
   private:
 	capnp::EzRpcClient rpcClient;
